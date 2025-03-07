@@ -4,12 +4,13 @@ from datetime import datetime
 
 
 class ViolatorForm(forms.ModelForm):
-    model = Violator
-    fields = ['circulation_number', 'name']
-    labels = {
-        'circulation_number': 'Αριθμός Κυκλοφορίας',
-        'name': 'Ονοματεπώνυμο'
-    }
+    class Meta:
+        model = Violator
+        fields = ['circulation_number', 'name']
+        labels = {
+            'circulation_number': 'Αριθμός Κυκλοφορίας',
+            'name': 'Ονοματεπώνυμο'
+        }
 
 
 class ViolationRecordForm(forms.ModelForm):
@@ -30,16 +31,16 @@ class ViolationRecordForm(forms.ModelForm):
         labels = {
             'violation': 'Αριθμός Παράβασης',
             'datetime_inspection': 'Ημερομηνία και Ώρα Ελέγχου',
-            'kind_violation': 'Τύπος Παραβάτη',
+            'kind_violator': 'Τύπος Παραβάτη',
         }
         widgets = {
             'datetime_inspection': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
         }
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.fields['datetime_inspection'].widget.attrs.update({'onchange': 'calculateDays()'})
-        self.fields['previous_datetime_inspection'].widget.attrs.update({'onchange': 'calculateDays()'})
+        self.fields['previous_inspection_date'].widget.attrs.update({'onchange': 'calculateDays()'})
 
     def clean(self):
         cleaned_data = super().clean()

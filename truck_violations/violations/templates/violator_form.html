@@ -21,48 +21,36 @@
     </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Εισαγωγή Παραβάτη και Παράβασης</h1>
+    <div class="container mt-5">
+        <h1 class="text-center">Τμήμα Τροχαίας Αυτοκινητόδρομων Κεντρικής Πελοποννήσου</h1>
+        <h2 class="text-center mb-4">Φόρμα Καταγραφής Παράβασης</h2>
 
-        <form method="post">
-            {% csrf_token %}
-
-            <!-- Στοιχεία Παραβάτη -->
-            <h2>Στοιχεία Παραβάτη</h2>
-            <div class="form-group">
-                {{ violator_form.circulation_number.label_tag }}
-                {{ violator_form.circulation_number }}
-            </div>
-            <div class="form-group">
-                {{ violator_form.name.label_tag }}
-                {{ violator_form.name }}
+        <div class="row">
+            <!-- Φόρμα ViolatorForm -->
+            <div class="col-md-6">
+                <h3>Στοιχεία Παραβάτη</h3>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    {{ violator_form.as_p }}
+                    <button type="submit" name="violator_submit" class="btn btn-primary">Αποθήκευση Παραβάτη</button>
+                </form>
             </div>
 
-            <!-- Στοιχεία Παράβασης -->
-            <h2>Στοιχεία Παράβασης</h2>
-            <div class="form-group">
-                {{ violation_form.violation.label_tag }}
-                {{ violation_form.violation }}
+            <!-- Φόρμα ViolationRecordForm -->
+            <div class="col-md-6">
+                <h3>Στοιχεία Παράβασης</h3>
+                <form method="post" class="mt-4">
+                    {% csrf_token %}
+                    {{ violation_record_form.as_p }}
+                    <button type="submit" name="violation_record_submit" class="btn btn-primary">Αποθήκευση Παράβασης</button>
+                </form>
             </div>
-            <div class="form-group">
-                {{ violation_form.datetime_inspection.label_tag }}
-                {{ violation_form.datetime_inspection }}
-            </div>
-            <div class="form-group">
-                {{ violation_form.previous_inspection_date.label_tag }}
-                {{ violation_form.previous_inspection_date }}
-            </div>
-            <div class="form-group">
-                {{ violation_form.days_passed.label_tag }}
-                {{ violation_form.days_passed }}
-            </div>
-            <div class="form-group">
-                {{ violation_form.kind_violation.label_tag }}
-                {{ violation_form.kind_violation }}
-            </div>
-
-            <button type="submit" class="btn btn-primary">Υποβολή</button>
-        </form>
+        </div>
     </div>
+
+    <!-- Bootstrap JS (προαιρετικό) -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
