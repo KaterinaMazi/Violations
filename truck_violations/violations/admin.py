@@ -17,9 +17,9 @@ class ViolatorAdmin(admin.ModelAdmin):
 
 class ViolationRecordAdmin(admin.ModelAdmin):
     list_display = ('violator', 'violation', 'datetime_inspection',
-                    'date_recorded', 'kind_violator', 'fine_amount')
+                    'kind_violator', 'fine_amount')
     search_fields = ('violator__license_number', 'violation__code')
-    list_filter = ('kind_violator', 'date_recorded', 'violation__code')
+    list_filter = ('kind_violator', 'datetime_inspection', 'violation__code')
 
 
 admin.site.register(Violation, ViolationAdmin)

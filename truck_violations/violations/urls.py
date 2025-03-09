@@ -1,6 +1,7 @@
 from django.urls import path
-from . import views  # Εισαγωγή των views από την τρέχουσα εφαρμογή
+from . import views
 
 urlpatterns = [
-    path('', views.violator_view, name='violator_form'),  # Προσθήκη του URL για τη φόρμα
+    path('', views.record_violation, name='record_violation'),
+    path('calculate-days-difference/', views.calculate_days_difference, name='calculate_days_difference'),
 ]

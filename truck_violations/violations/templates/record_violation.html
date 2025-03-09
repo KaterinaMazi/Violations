@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Σύστημα Καταγραφής Παραβάσεων</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        body {
+            padding-top: 20px;
+            padding-bottom: 40px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4">ΤΜΗΜΑ ΤΡΟΧΑΙΑΣ ΑΥΤΟΚΙΝΗΤΟΔΡΟΜΩΝ ΚΕΝΤΡΙΚΗΣ ΠΕΛΟΠΟΝΝΗΣΟΥ</h2>
+        
+        {% if success_message %}
+        <div class="alert alert-success">
+            {{ success_message }}
+        </div>
+        {% endif %}
+        
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3>Καταχώρηση Παράβασης</h3>
+            </div>
+            <div class="card-body">
+                <form method="post" id="violationForm">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.circulation_number.id_for_label }}">{{ form.circulation_number.label }}</label>
+                            {{ form.circulation_number }}
+                            {% if form.circulation_number.errors %}
+                                <div class="text-danger">{{ form.circulation_number.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
+                            {{ form.name }}
+                            {% if form.name.errors %}
+                                <div class="text-danger">{{ form.name.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.previous_inspection.id_for_label }}">{{ form.previous_inspection.label }}</label>
+                            {{ form.previous_inspection }}
+                            {% if form.previous_inspection.errors %}
+                                <div class="text-danger">{{ form.previous_inspection.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.datetime_inspection.id_for_label }}">{{ form.datetime_inspection.label }}</label>
+                            {{ form.datetime_inspection }}
+                            {% if form.datetime_inspection.errors %}
+                                <div class="text-danger">{{ form.datetime_inspection.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label>ΔΙΑΦΟΡΑ ΣΕ ΗΜΕΡΕΣ:</label>
+                            <input type="text" id="days_difference" class="form-control" readonly value="-">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.kind_violator.id_for_label }}">{{ form.kind_violator.label }}</label>
+                            {{ form.kind_violator }}
+                            {% if form.kind_violator.errors %}
+                                <div class="text-danger">{{ form.kind_violator.errors }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="{{ form.violation.id_for_label }}">{{ form.violation.label }}</label>
+                            {{ form.violation }}
+                            {% if form.violation.errors %}
+                                <div class="text-danger">{{ form.violation.errors }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">ΚΑΤΑΧΩΡΗΣΗ</button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3>Καταχωρημένες Παραβάσεις</h3>
+            </div>
+            <div class="card-body">
+                {% if violations_records %}
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>ΑΡΙΘΜΟΣ ΠΑΡΑΒΑΣΗΣ</th>
+                                <th>ΗΜΕΡΟΜΗΝΙΑ</th>
+                                <th>ΠΡΟΣΤΙΜΟ</th>
+                                <th>ΑΡΘΡΟ</th>
+                                <th>EU CODE</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for record in violations_records %}
+                            <tr>
+                                <td>{{ record.violation.code }}</td>
+                                <td>{{ record.datetime_inspection|date:"d/m/Y" }}</td>
+                                <td>
+                                    {% if record.kind_violator == 'Οδηγός' %}
+                                        {{ record.violation.driver_fine }}
+                                    {% else %}
+                                        {{ record.violation.owner_fine }}
+                                    {% endif %}
+                                </td>
+                                <td>{{ record.violation.legal_basis }}</td>
+                                <td>{{ record.violation.eu_code }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                    {% if total_fine %}
+                    <div class="alert alert-info mt-3">
+                        <strong>ΣΥΝΟΛΙΚΟ ΠΡΟΣΤΙΜΟ:</strong> {{ total_fine }} €
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="alert alert-info">
+                        Δεν υπάρχουν καταχωρημένες παραβάσεις.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const previousInspectionInput = document.getElementById('{{ form.previous_inspection.id_for_label }}');
+            const currentInspectionInput = document.getElementById('{{ form.datetime_inspection.id_for_label }}');
+            const daysDifferenceOutput = document.getElementById('days_difference');
+            
+            function calculateDaysDifference() {
+                if (!previousInspectionInput.value) {
+                    daysDifferenceOutput.value = '-';
+                    return;
+                }
+                
+                const previousDate = previousInspectionInput.value;
+                const currentDate = currentInspectionInput.value;
+                
+                fetch('{% url "calculate_days_difference" %}', {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                    },
+                    body: new URLSearchParams({
+                        'previous_date': previousDate,
+                        'current_date': currentDate
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                        console.error(data.error);
+                        daysDifferenceOutput.value = 'Σφάλμα';
+                    } else {
+                        daysDifferenceOutput.value = data.days_difference;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    daysDifferenceOutput.value = 'Σφάλμα';
+                });
+            }
+            
+            // Υπολογισμός όταν αλλάζουν οι ημερομηνίες
+            previousInspectionInput.addEventListener('change', calculateDaysDifference);
+            currentInspectionInput.addEventListener('change', calculateDaysDifference);
+            
+            // Αρχικός υπολογισμός αν υπάρχουν ημερομηνίες
+            if (previousInspectionInput.value && currentInspectionInput.value) {
+                calculateDaysDifference();
+            }
+        });
+    </script>
+</body>
+</html>

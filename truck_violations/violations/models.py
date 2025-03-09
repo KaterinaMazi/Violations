@@ -1,4 +1,5 @@
 from django.db import models
+from datetime import datetime
 
 
 class Violation(models.Model):
@@ -39,17 +40,14 @@ class ViolationRecord(models.Model):
 
     violator = models.ForeignKey(Violator, on_delete=models.CASCADE)
     violation = models.ForeignKey(Violation, on_delete=models.PROTECT)
-    datetime_inspection = models.DateTimeField()
-    date_recorded = models.DateField(auto_now_add=True)
+    datetime_inspection = models.DateTimeField(default=datetime.now)
+    previous_inspection = models.DateTimeField(null=True, blank=True)
     kind_violator = models.CharField(
         max_length=10,
         choices=VIOLATOR_CHOICES,
         default=OWNER
     )
 
-    def __str__(self):
-        return (f"{self.violator.circulation_number} - {self.kind_violator} "
-                f"{self.violation.code} - {self.date_recorded}")
 
     @property
     def fine_amount(self):
@@ -57,3 +55,8 @@ class ViolationRecord(models.Model):
             return self.violation.driver_fine
         else:
             return self.violation.owner_fine
+
+    def days_difference(self):
+        if self.previous_inspection:
+            return (self.datetime_inspection - self.previous_inspection).days
+

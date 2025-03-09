@@ -3,56 +3,51 @@ from .models import Violator, ViolationRecord, Violation
 from datetime import datetime
 
 
-class ViolatorForm(forms.ModelForm):
-    class Meta:
-        model = Violator
-        fields = ['circulation_number', 'name']
-        labels = {
-            'circulation_number': 'Αριθμός Κυκλοφορίας',
-            'name': 'Ονοματεπώνυμο'
-        }
-
-
-class ViolationRecordForm(forms.ModelForm):
-    previous_inspection_date = forms.DateField(
-        label='Προηγούμενη Ημερομηνία Ελέγχου',
-        widget=forms.DateInput(attrs={'type': 'date'}),
-        required=True,
+class ViolationRecordForm(forms.Form):
+    circulation_number = forms.CharField(
+        max_length=20,
+        label='ΑΡΙΘΜΟΣ ΚΥΚΛΟΦΟΡΙΑΣ',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
     )
-    days_passed = forms.IntegerField(
-        label='Διαφορά σε Ημέρες',
-        widget=forms.TextInput(attrs={'readonly': 'readonly'}),
+    name = forms.CharField(
+        max_length=50,
+        label='ΟΝΟΜΑΤΕΠΩΝΥΜΟ',
+        widget=forms.TextInput(attrs={'class': 'form-control'})
+    )
+    previous_inspection = forms.DateTimeField(
+        label='ΗΜΕΡΟΜΗΝΙΑ ΠΡΟΗΓΟΥΜΕΝΟΥ ΕΛΕΓΧΟΥ',
         required=False,
+        widget=forms.DateTimeInput(
+            attrs={'class': 'form-control', 'type': 'datetime-local'},
+            format='%Y-%m-%dT%H:%M'
+        )
     )
-
-    class Meta:
-        model = ViolationRecord
-        fields = ['violation', 'datetime_inspection', 'kind_violator']
-        labels = {
-            'violation': 'Αριθμός Παράβασης',
-            'datetime_inspection': 'Ημερομηνία και Ώρα Ελέγχου',
-            'kind_violator': 'Τύπος Παραβάτη',
-        }
-        widgets = {
-            'datetime_inspection': forms.DateTimeInput(attrs={'type': 'datetime-local'}),
-        }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['datetime_inspection'].widget.attrs.update({'onchange': 'calculateDays()'})
-        self.fields['previous_inspection_date'].widget.attrs.update({'onchange': 'calculateDays()'})
+    datetime_inspection = forms.DateTimeField(
+        label='ΗΜΕΡΟΜΗΝΙΑ ΚΑΙ ΩΡΑ ΕΛΕΓΧΟΥ',
+        widget=forms.DateTimeInput(
+            attrs={'class': 'form-control', 'type': 'datetime-local'},
+            format='%Y-%m-%dT%H:%M'
+        ),
+        initial=datetime.now
+    )
+    kind_violator = forms.ChoiceField(
+        choices=ViolationRecord.VIOLATOR_CHOICES,
+        label='ΙΔΙΟΚΤΗΤΗΣ / ΟΔΗΓΟΣ',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+    violation = forms.ModelChoiceField(
+        queryset=Violation.objects.filter(is_active=True),
+        label='ΑΡΙΘΜΟΣ ΠΑΡΑΒΑΣΗΣ',
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
 
     def clean(self):
         cleaned_data = super().clean()
-        previous_inspection_date = cleaned_data.get('previous_inspection_date')
-        current_inspection_date = cleaned_data.get('datetime_inspection')
+        previous_inspection = cleaned_data.get('previous_inspection')
+        datetime_inspection = cleaned_data.get('datetime_inspection')
 
-        if previous_inspection_date and current_inspection_date:
-            if previous_inspection_date > current_inspection_date:
-                raise forms.ValidationError(
-                    "Η προηγούμενη ημερομηνία δεν μπορεί να είναι μετά την τρέχουσα ημερομηνία ελέγχου.")
-
-            delta = current_inspection_date - previous_inspection_date
-            cleaned_data['days_passed'] = delta.days
+        if previous_inspection and datetime_inspection and previous_inspection > datetime_inspection:
+            raise forms.ValidationError(
+                "Η ημερομηνία προηγούμενου ελέγχου δεν μπορεί να είναι μεταγενέστερη της τρέχουσας ημερομηνίας ελέγχου.")
 
         return cleaned_data
