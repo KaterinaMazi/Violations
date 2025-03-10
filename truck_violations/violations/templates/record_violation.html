@@ -5,10 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Σύστημα Καταγραφής Παραβάσεων</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <style>
         body {
             padding-top: 20px;
             padding-bottom: 40px;
+        }
+        @media print {
+            /* Κρύβουμε τα στοιχεία που δεν χρειάζονται στην εκτύπωση */
+            #printButton, #downloadPdfButton, #violationSearchInput,
+            #violationForm .row:nth-child(3), /* Κρύβει τη δεύτερη γραμμή της φόρμας (προηγούμενη επιθεώρηση, κλπ) */
+            #violationForm .row:nth-child(4), /* Κρύβει την τρίτη γραμμή της φόρμας (διαφορά ημερών, κλπ) */
+            button[type="submit"] /* Κρύβει το κουμπί καταχώρηση */ {
+                display: none !important;
+            }
+
+            /* Διατηρεί τις κεφαλίδες */
+            .card-header {
+                background-color: #f8f9fa !important;
+                color: black !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            /* Καλύτερη εμφάνιση για εκτύπωση */
+            body {
+                background-color: white;
+            }
+
+            .card {
+                border: 1px solid #ddd !important;
+                box-shadow: none !important;
+                margin-bottom: 20px !important;
+            }
+
+            /* Εμφάνιση της πρώτης γραμμής της φόρμας (αρ. κυκλ. και ονοματεπώνυμο) */
+            #violationForm .row:first-child {
+                display: flex !important;
+            }
         }
     </style>
 </head>
@@ -34,16 +68,16 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.circulation_number.id_for_label }}">{{ form.circulation_number.label }}</label>
                             {{ form.circulation_number }}
-                            {% if form.circulation_number.errors %}
-                                <div class="text-danger">{{ form.circulation_number.errors }}</div>
-                            {% endif %}
+                            {% for error in form.circulation_number.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
                             {{ form.name }}
-                            {% if form.name.errors %}
-                                <div class="text-danger">{{ form.name.errors }}</div>
-                            {% endif %}
+                            {% for error in form.name.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
                     </div>
                     
@@ -51,16 +85,16 @@
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.previous_inspection.id_for_label }}">{{ form.previous_inspection.label }}</label>
                             {{ form.previous_inspection }}
-                            {% if form.previous_inspection.errors %}
-                                <div class="text-danger">{{ form.previous_inspection.errors }}</div>
-                            {% endif %}
+                            {% for error in form.previous_inspection.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="{{ form.datetime_inspection.id_for_label }}">{{ form.datetime_inspection.label }}</label>
                             {{ form.datetime_inspection }}
-                            {% if form.datetime_inspection.errors %}
-                                <div class="text-danger">{{ form.datetime_inspection.errors }}</div>
-                            {% endif %}
+                            {% for error in form.datetime_inspection.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
                     </div>
                     
@@ -72,16 +106,16 @@
                         <div class="col-md-4 mb-3">
                             <label for="{{ form.kind_violator.id_for_label }}">{{ form.kind_violator.label }}</label>
                             {{ form.kind_violator }}
-                            {% if form.kind_violator.errors %}
-                                <div class="text-danger">{{ form.kind_violator.errors }}</div>
-                            {% endif %}
+                            {% for error in form.kind_violator.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
                         <div class="col-md-4 mb-3">
                             <label for="{{ form.violation.id_for_label }}">{{ form.violation.label }}</label>
                             {{ form.violation }}
-                            {% if form.violation.errors %}
-                                <div class="text-danger">{{ form.violation.errors }}</div>
-                            {% endif %}
+                            {% for error in form.violation.errors %}
+                                <div class="text-danger">{{ error }}</div>
+                            {% endfor %}
                         </div>
                     </div>
                     
@@ -96,9 +130,15 @@
             </div>
             <div class="card-body">
                 {% if violations_records %}
-                    <table class="table table-striped">
+
+                <div class="form-group mb-3">
+                    <input type="text" id="violationSearchInput" class="form-control" placeholder="Αναζήτηση παράβασης (π.χ. Α8)...">
+                </div>
+
+                    <table class="table table-striped" id="violationsTable">
                         <thead>
                             <tr>
+                                <th>#</th>
                                 <th>ΑΡΙΘΜΟΣ ΠΑΡΑΒΑΣΗΣ</th>
                                 <th>ΗΜΕΡΟΜΗΝΙΑ</th>
                                 <th>ΠΡΟΣΤΙΜΟ</th>
@@ -109,6 +149,7 @@
                         <tbody>
                             {% for record in violations_records %}
                             <tr>
+                                <td>{{ forloop.counter }}</td>
                                 <td>{{ record.violation.code }}</td>
                                 <td>{{ record.datetime_inspection|date:"d/m/Y" }}</td>
                                 <td>
@@ -130,6 +171,11 @@
                         <strong>ΣΥΝΟΛΙΚΟ ΠΡΟΣΤΙΜΟ:</strong> {{ total_fine }} €
                     </div>
                     {% endif %}
+                    <div class="mt-3">
+                        <button id="printButton" class="btn btn-secondary mr-2">
+                            <i class="fas fa-print"></i> Εκτύπωση
+                        </button>
+                    </div>
                 {% else %}
                     <div class="alert alert-info">
                         Δεν υπάρχουν καταχωρημένες παραβάσεις.
@@ -210,6 +256,50 @@
                 }
             });
         });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('violationSearchInput');
+        if (searchInput) {
+            searchInput.addEventListener('input', function() {
+                const searchText = this.value.toLowerCase().trim();
+                const table = document.getElementById('violationsTable');
+                if (!table) return;
+
+                const rows = table.querySelectorAll('tbody tr');
+                let visibleCount = 0; // Μετρητής για ορατές γραμμές
+
+                rows.forEach(function(row) {
+                    const codeCell = row.querySelector('td:nth-child(2)');
+                    if (codeCell) {
+                        const code = codeCell.textContent || codeCell.innerText;
+                        if (code.toLowerCase().includes(searchText)) {
+                            row.style.display = '';
+                            // Προσθήκη επαναρίθμησης εδώ
+                            visibleCount++;
+                            const indexCell = row.querySelector('td:first-child');
+                            if (indexCell) {
+                                indexCell.textContent = visibleCount;
+                            }
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                });
+            });
+        }
+    });
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Κουμπί εκτύπωσης
+        const printButton = document.getElementById('printButton');
+        if (printButton) {
+            printButton.addEventListener('click', function() {
+                window.print();
+            });
+        }
+    });
     </script>
 </body>
 </html>

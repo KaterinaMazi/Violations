@@ -46,8 +46,8 @@ class ViolationRecordForm(forms.Form):
         previous_inspection = cleaned_data.get('previous_inspection')
         datetime_inspection = cleaned_data.get('datetime_inspection')
 
-        if previous_inspection and datetime_inspection and previous_inspection > datetime_inspection:
-            raise forms.ValidationError(
-                "Η ημερομηνία προηγούμενου ελέγχου δεν μπορεί να είναι μεταγενέστερη της τρέχουσας ημερομηνίας ελέγχου.")
+        if previous_inspection and datetime_inspection and (previous_inspection > datetime_inspection):
+            self.add_error('previous_inspection', "Η ημερομηνία προηγούμενου ελέγχου δεν μπορεί να είναι"
+                                                  " μεταγενέστερη της τρέχουσας ημερομηνίας ελέγχου.")
 
         return cleaned_data
