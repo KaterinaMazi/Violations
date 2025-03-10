@@ -6,6 +6,11 @@ from datetime import datetime
 
 
 def record_violation(request):
+    violations_records = None
+    total_fine = 0
+    violator_name = ""
+    success_message = None
+
     if request.method == 'POST':
         form = ViolationRecordForm(request.POST)
         if form.is_valid():
@@ -42,16 +47,36 @@ def record_violation(request):
             # Υπολογισμός συνολικού προστίμου
             total_fine = calculate_total_fine(violations_records)
 
-            return render(request, 'record_violation.html', {
-                'form': ViolationRecordForm(),
-                'violations_records': violations_records,
-                'total_fine': total_fine,
-                'success_message': 'Η παράβαση καταχωρήθηκε επιτυχώς.'
+            success_message = 'Η παράβαση καταχωρήθηκε επιτυχώς.'
+
+    elif request.method == 'GET' and 'circulation_number' in request.GET:
+        # Αν έχουμε αριθμό κυκλοφορίας στο GET, φορτώνουμε τις παραβάσεις
+        circulation_number = request.GET.get('circulation_number')
+
+        try:
+            violator = Violator.objects.get(circulation_number=circulation_number)
+            violator_name = violator.name
+
+            violations_records = ViolationRecord.objects.filter(violator=violator).order_by('-datetime_inspection')
+            total_fine = calculate_total_fine(violations_records)
+
+            # Προσυμπληρώνουμε τη φόρμα με τον αριθμό κυκλοφορίας και το όνομα
+            form = ViolationRecordForm(initial={
+                'circulation_number': circulation_number,
+                'name': violator_name
             })
+        except Violator.DoesNotExist:
+            # Αν δεν υπάρχει παραβάτης, προσυμπληρώνουμε μόνο τον αριθμό κυκλοφορίας
+            form = ViolationRecordForm(initial={'circulation_number': circulation_number})
     else:
         form = ViolationRecordForm()
 
-    return render(request, 'record_violation.html', {'form': form})
+    return render(request, 'record_violation.html', {
+        'form': form,
+        'violations_records': violations_records,
+        'total_fine': total_fine,
+        'success_message': success_message
+    })
 
 
 def calculate_days_difference(request):
