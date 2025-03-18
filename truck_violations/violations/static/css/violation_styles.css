@@ -1,0 +1,56 @@
+body {
+    padding-top: 20px;
+    padding-bottom: 40px;
+}
+
+.container-header {
+        display: flex;
+        justify-content: space-between;
+    }
+
+@media print {
+    /* Κρύβουμε τα στοιχεία που δεν χρειάζονται στην εκτύπωση */
+    #printButton,
+    #violationSearchInput,
+    #violationForm .row:nth-child(3), /* Κρύβει τη δεύτερη γραμμή της φόρμας (προηγούμενη επιθεώρηση, κλπ) */
+    #violationForm .row:nth-child(4), /* Κρύβει την τρίτη γραμμή της φόρμας (διαφορά ημερών, κλπ) */
+    button[type="submit"] /* Κρύβει το κουμπί καταχώρηση */ {
+        display: none !important;
+    }
+
+    .btn-primary {
+        display: none !important;
+    }
+
+    .alert-success {
+        display: none !important;
+    }
+
+    .reset-btn {
+        display: none !important;
+    }
+
+    /* Διατηρεί τις κεφαλίδες */
+    .card-header {
+        background-color: #f8f9fa !important;
+        color: black !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+
+    /* Καλύτερη εμφάνιση για εκτύπωση */
+    body {
+        background-color: white;
+    }
+
+    .card {
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+        margin-bottom: 20px !important;
+    }
+
+    /* Εμφάνιση της πρώτης γραμμής της φόρμας (αρ. κυκλ. και ονοματεπώνυμο) */
+    #violationForm .row:first-child {
+        display: flex !important;
+    }
+}

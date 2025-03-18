@@ -1,7 +1,7 @@
 from django.urls import path
-from . import views
+from .views import ViolationRecordView, CalculateDaysDifferenceView
 
 urlpatterns = [
-    path('', views.record_violation, name='record_violation'),
-    path('calculate-days-difference/', views.calculate_days_difference, name='calculate_days_difference'),
+    path('', ViolationRecordView.as_view(), name='record_violation'),
+    path('calculate-days-difference/', CalculateDaysDifferenceView.as_view(), name='calculate_days_difference'),
 ]
