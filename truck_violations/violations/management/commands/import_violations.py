@@ -27,4 +27,4 @@ class Command(BaseCommand):
             )
             total_imported += 1
 
-        self.stdout.write(self.style.SUCCESS(f"✅ Επιτυχής εισαγωγή {total_imported} δεδομένων!"))
+        self.stdout.write(self.style.SUCCESS(f"Επιτυχής εισαγωγή {total_imported} δεδομένων!"))
